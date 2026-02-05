@@ -1,0 +1,58 @@
+# General
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log
+yarn-error.log
+
+# pnpm
+pnpm-debug.log
+.pnpm-store/
+
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android
+**/android/local.properties
+**/android/.gradle
+**/android/app/build
+**/android/captures
+**/android/gradlew
+**/android/gradlew.bat
+**/android/gradle/wrapper/gradle-wrapper.jar
+**/android/.idea
+**/android/.navigation
+
+# iOS
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/app.flx
+**/ios/Flutter/gen_snapshot.d
+**/ios/Flutter/ephemeral/
+**/ios/Podfile.lock
+**/ios/Pods/
+**/ios/.symlinks/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
