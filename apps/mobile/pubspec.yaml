@@ -1,5 +1,5 @@
 name: mobile
-description: Flutter Android sample (docker-compose)
+description: Flutter Android sample
 publish_to: "none"
 version: 0.1.0
 
