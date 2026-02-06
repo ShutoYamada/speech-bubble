@@ -92,9 +92,15 @@ docker compose exec api pnpm dev
 Windows上で実行する。
 
 ```bash
-# WSL2上のFlutterソースをWindows上で参照できるようにする
-cd \\wsl$\Ubuntu\home\username\path-to-speech-bubble\apps\mobile
+# FlutterはWindows上で起動する
+cd path-to-speech-bubble\apps\mobile
+
+# flutter doctorで環境を確認(初回のみ)
+flutter doctor
+
+# デバイスの確認(Androidエミュレータが認識されているか)
+flutter devices
 
 # Flutterの起動
-flutter run
+flutter run -d <device_id>
 ```
