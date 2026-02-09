@@ -9,6 +9,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
+
 late final List<CameraDescription> _cameras;
 
 Future<void> main() async {
@@ -22,8 +25,140 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const FaceBubblePage(),
+      title: 'Speech Bubble',
       theme: ThemeData(useMaterial3: true),
+      home: const HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Speech Bubble'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const FaceBubblePage()),
+                );
+              },
+              child: const Text('カメラから判定'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                final picker = ImagePicker();
+                final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+                if (video != null) {
+                  if (context.mounted) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => VideoBubblePage(videoPath: video.path),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('動画読み込み'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VideoBubblePage extends StatefulWidget {
+  const VideoBubblePage({super.key, required this.videoPath});
+  final String videoPath;
+
+  @override
+  State<VideoBubblePage> createState() => _VideoBubblePageState();
+}
+
+class _VideoBubblePageState extends State<VideoBubblePage> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.file(File(widget.videoPath))
+      ..initialize().then((_) {
+        setState(() {
+          _initialized = true;
+          _controller.setLooping(true);
+          _controller.play();
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Video Analysis')),
+      body: Center(
+        child: _initialized
+            ? AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    VideoPlayer(_controller),
+                    // Mock Bubble Overlay for Video
+                    // Note: Real ML Kit on video requires extracting frames which is complex.
+                    // Validation: showing a mock bubble to demonstrate UI as requested.
+                    const Positioned(
+                      top: 50,
+                      right: 50,
+                      child: _MockBubble(),
+                    ),
+                    VideoProgressIndicator(_controller, allowScrubbing: true),
+                  ],
+                ),
+              )
+            : const CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class _MockBubble extends StatelessWidget {
+  const _MockBubble();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+      ),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+           Text(
+            '（モック）\n動画判定中...',
+             style: TextStyle(color: Colors.black),
+           ),
+        ],
+      ),
     );
   }
 }
@@ -243,19 +378,32 @@ class _FaceBubblePageState extends State<FaceBubblePage> {
             ),
 
           SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'faces: ${_faces.length}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ),
-                child: Text(
-                  'faces: ${_faces.length}',
-                  style: const TextStyle(color: Colors.white),
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: FloatingActionButton.small(
+                    backgroundColor: Colors.white,
+                    child: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],

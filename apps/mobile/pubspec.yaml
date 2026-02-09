@@ -12,6 +12,8 @@ dependencies:
   http: ^1.2.1
   camera: ^0.11.0+2
   google_mlkit_face_detection: ^0.11.1
+  image_picker: ^1.1.2
+  video_player: ^2.9.2
 
 flutter:
   uses-material-design: true
