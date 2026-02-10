@@ -1,38 +1,16 @@
-version: "3.9"
-
+version: '3.8'
 services:
-  api:
-    build:
-      context: ./apps/api
-    ports:
-      - "3000:3000"
-    environment:
-      - PORT=3000
-      - CORS_ORIGIN=*
+  app:
+    image: node:20
+    working_dir: /app
     volumes:
-      - ./apps/api:/app
-    command: sleep infinity
-
-#   flutter:
-#     build:
-#       context: ./apps/mobile
-#     # Flutterはホストから起動操作するので、portsは必須ではない
-#     # （Webではないため）
-#     volumes:
-#       - ./apps/mobile:/app
-#       - flutter_pub_cache:/root/.pub-cache
-#       # adb key を永続化（毎回ペアリングし直しを減らす）
-#       - flutter_android_home:/root/.android
-#     environment:
-#       # Windows Emulator へ adb connect する際の候補（まずはこれでOKなことが多い）
-#       - ADB_CONNECT_HOST=host.docker.internal
-#       - ADB_CONNECT_PORT=5555
-#       # APIのベースURL（Android Emulatorからホスト/WSLへ繋ぐ場合は10.0.2.2などに変える）
-#       - API_BASE_URL=http://10.0.2.2:3000
-#     stdin_open: true
-#     tty: true
-#     command: bash
-
-# volumes:
-#   flutter_pub_cache:
-#   flutter_android_home:
+      - .:/app
+      - ~/.config/gcloud/application_default_credentials.json:/gcloud/adc.json:ro
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm add -w -D depcheck && tail -f /dev/null"
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/adc.json
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-8080}:8080"
+      - "${WEB_PORT:-5173}:5173"

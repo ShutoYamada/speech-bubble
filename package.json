@@ -1,0 +1,16 @@
+{
+  "name": "speech-bubble-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -F \"./**\" dev",
+    "api": "pnpm -F 'api'",
+    "web": "pnpm -F 'web'",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "depcheck": "^1.4.7",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
