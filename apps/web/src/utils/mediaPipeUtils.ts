@@ -5,6 +5,8 @@ import {
 
 let faceLandmarker: FaceLandmarker | undefined;
 
+const THRESHOLD = 0.02;
+
 export const initializeFaceLandmarker = async () => {
   const filesetResolver = await FilesetResolver.forVisionTasks(
     'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
@@ -43,7 +45,7 @@ export const isMouthOpen = (landmarks: any[]) => {
   const distance = Math.abs(upperLipBottom.y - lowerLipTop.y);
   
   // Threshold can be adjusted. Normalized coordinates.
-  return distance > 0.05; 
+  return distance > THRESHOLD; 
 };
 
 export const getMouthPosition = (landmarks: any[]) => {

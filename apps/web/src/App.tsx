@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import './App.css';
 import { Header } from './components/Header';
 import { VideoUploader } from './components/VideoUploader';
@@ -33,7 +33,7 @@ function App() {
     setBubblePosition(null);
   };
 
-  const processVideo = () => {
+  const processVideo = useCallback(function loop() {
     if (videoRef.current && isModelLoaded) {
       const video = videoRef.current;
       if (video.paused || video.ended || video.readyState < 2) return;
@@ -43,36 +43,25 @@ function App() {
       const startTimeMs = video.currentTime * 1000;
       const results = detectFaceLandmarks(video, startTimeMs);
 
-      console.log("results", results);
-
       if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
-        if (isMouthOpen(landmarks)) {
-           const mouthPos = getMouthPosition(landmarks);
+        const isOpen = isMouthOpen(landmarks);
+        const mouthPos = getMouthPosition(landmarks);
+
+        if (isOpen) {
            if(mouthPos && videoRef.current) {
                // Calculate the actual displayed size of the video
                const rect = videoRef.current.getBoundingClientRect();
                
-               // The video element takes up usage space (rect), but the actual video content might be letterboxed/pillarboxed inside it if object-fit: contain is used (default behaviour of video tag usually).
-               // However, without object-fit specified in CSS, 'video' usually behaves like 'contain' or stretches? 
-               // Actually, HTMLVideoElement default object-fit is 'contain'.
-               // To keep it simple, let's assume the video fills the rect or we do the math. 
-               // For now, let's stick to simple mapping and ensure CSS makes video fill the width/height or use object-fit: cover if we want exact filling, 
-               // OR more robustly, calculate the scale.
-               
-               // Let's assume the CSS width/height matches the rendered video for now.
-               // If there are black bars, this mapping will be slightly off, but should still be close enough for verification.
-               
-               // Better approach:
-               // The landmarks are normalized (0.0 - 1.0) relative to the *video frame*.
-               // If the video is displayed with 'object-fit: contain' (default), we need to know the drawn dimensions.
-               
-               // Let's rely on the simple rect mapping first, as it's the most likely issue being empty results, not positioning yet.
-               // But we need to make sure we are not calculating garbage if landmarks happen to appear.
-               
+               // SpeechBubbleOverlayは.video-container内でposition: absoluteで配置されているため、
+               // 親要素を基準とした相対座標を使用する必要がある
+               // rect.left/topはビューポート座標なので加算しない
+               const x = mouthPos.x * rect.width;
+               const y = mouthPos.y * rect.height;
+
                setBubblePosition({
-                   x: rect.left + mouthPos.x * rect.width,
-                   y: rect.top + mouthPos.y * rect.height
+                   x: x, 
+                   y: y
                });
            }
         } else {
@@ -80,9 +69,9 @@ function App() {
         }
       }
 
-      requestRef.current = requestAnimationFrame(processVideo);
+      requestRef.current = requestAnimationFrame(loop);
     }
-  };
+  }, [isModelLoaded]);
 
   useEffect(() => {
       // Start processing when video plays
@@ -105,7 +94,7 @@ function App() {
         video.removeEventListener('pause', onPause);
         if(requestRef.current) cancelAnimationFrame(requestRef.current);
       }
-  }, [videoSrc, isModelLoaded]); // Re-bind when videoSrc changes mainly
+  }, [videoSrc, processVideo]); // Re-bind when videoSrc or processVideo changes
 
 
   return (
